@@ -2,35 +2,32 @@ from django.db import models
 
 # Create your models here.
 class User(models.Model):
-    # username = models.CharField(max_length=150, unique=True)
-    # email = models.EmailField(unique=True)
-    # password = models.CharField(max_length=128)
+    user_id = models.AutoField(primary_key=True)
+    username = models.CharField(max_length=100, unique=True)
+    password = models.CharField(max_length=100)
+    role = models.CharField(max_length=20)  # 'customer' or 'employee'
 
     def __str__(self):
-        return self.username
+        return self.user_id
     
-class Employee(models.Model):
-    # name = models.CharField(max_length=100)
-    # email = models.EmailField(unique=True)
-    # phone_number = models.CharField(max_length=20)
-    # department = models.CharField(max_length=100)
-    # position = models.CharField(max_length=100)
-    # salary = models.DecimalField(max_digits=10, decimal_places=2)
-    # hire_date = models.DateField()
-    # is_active = models.BooleanField(default=True)
-    #NID_= models.CharField(max_length=20, unique=True)
+class Employee(User):
+    employee_id = models.AutoField(primary_key=True)
+    address= models.TextField()
+    phone= models.CharField(max_length=20)
+    email = models.EmailField(unique=True)
 
     def __str__(self):
-        return self.name
+        return self.employee_id
 
-class Customer(models.Model): 
-    # name = models.CharField(max_length=100)
-    # email = models.EmailField(unique=True)
-    # phone_number = models.CharField(max_length=20)
-    # address = models.TextField()
+class Customer(User): 
+    Customer_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=100)
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=20)
+    address = models.TextField()
 
     def __str__(self):
-        return self.name
+        return self.Customer_id
 
 
 
