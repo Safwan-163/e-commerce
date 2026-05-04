@@ -8,7 +8,7 @@ class User(models.Model):
     role = models.CharField(max_length=20)  # 'customer' or 'employee'
 
     def __str__(self):
-        return self.user_id
+        return str(self.username)
     
 class Employee(User):
     employee_id = models.AutoField(primary_key=True)
@@ -17,7 +17,7 @@ class Employee(User):
     email = models.EmailField(unique=True)
 
     def __str__(self):
-        return self.employee_id
+        return str(self.username)
 
 class Customer(User): 
     Customer_id = models.AutoField(primary_key=True)
@@ -27,7 +27,7 @@ class Customer(User):
     address = models.TextField()
 
     def __str__(self):
-        return self.Customer_id
+        return str(self.username)
 
 
 
