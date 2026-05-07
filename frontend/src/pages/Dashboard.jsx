@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useEffect, useState } from "react";
+import { logoutUser } from "../survices/auth";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);

@@ -1,5 +1,6 @@
 //import { User, Briefcase, DollarSign, Calendar } from "lucide-react";
 import Navbar from "../components/Navbar";
+import {logoutUser} from "../survices/auth";
 
 export default function EmployeeDashboard() {
   return (
@@ -15,6 +16,9 @@ export default function EmployeeDashboard() {
           <p className="hover:text-black cursor-pointer">Products</p>
           <p className="hover:text-black cursor-pointer">Analytics</p>
           <p className="hover:text-black cursor-pointer">Transactions</p>
+          <p className="hover:text-black cursor-pointer" onClick={logoutUser}>
+            Logout
+          </p>
         </nav>
       </aside>
 
