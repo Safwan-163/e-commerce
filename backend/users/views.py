@@ -6,7 +6,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response    
 from rest_framework import status
 from rest_framework import status
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 
 # Create your views here.
 @api_view(['POST'])
@@ -57,12 +59,7 @@ def verify_user(request):
         pass
 
     return Response({"message": "Invalid credentials"}, status=401)
-# from rest_framework_simplejwt.tokens import RefreshToken
-# from django.contrib.auth.hashers import check_password
-# from .models import Customer, Employee
-# from rest_framework.response import Response
-# from rest_framework.decorators import api_view
-# from rest_framework import status
+
 
 
 @api_view(['POST'])
@@ -92,14 +89,14 @@ def login_user(request):
             )
 
     # 🔐 Check password (IMPORTANT FIX)
-    if not check_password(password, user.password):
+    if not check_password(password, user.password): # type: ignore
         return Response(
             {"error": "Invalid credentials"},
             status=status.HTTP_401_UNAUTHORIZED
         )
 
     # 🎟 Generate JWT token
-    refresh = RefreshToken.for_user(user)
+    refresh = RefreshToken.for_user(user) # type: ignore
 
     return Response({
         "refresh": str(refresh),
@@ -118,7 +115,7 @@ def log_out(request):
         refresh_token = request.data.get("refresh")
         if refresh_token is None:
             return Response({"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
-        token = RefreshToken(refresh_token)
+        token = RefreshToken(refresh_token) # type: ignore
         token.blacklist()  # Blacklist the refresh token
         return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
     
@@ -154,3 +151,25 @@ def update_user(request, user_id):
             "error": "User not found"
         }, status=status.HTTP_404_NOT_FOUND)
  
+ 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    user = request.user
+
+    role = None
+
+    # Check role
+    if hasattr(user, 'customer'):
+        role = "customer"
+        serializer = CustomerSerializer(user.customer)
+    elif hasattr(user, 'employee'):
+        role = "employee"
+        serializer = EmployeeSerializer(user.employee)
+    else:
+        return Response({"error": "User role not found"}, status=400)
+
+    return Response({
+        "role": role,
+        "data": serializer.data
+    })

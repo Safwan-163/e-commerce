@@ -2,9 +2,10 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('add-to-cart/', views.add_to_cart, name='add_to_cart'),    
-    path('view-cart/', views.view_cart, name='view_cart'),
-    path('remove-from-cart/', views.remove_from_cart, name='remove_from_cart'),
     path('product-details/', views.get_details, name='product_details'),
     path('list-products/', views.list_products, name='list_products'),
+    path('add-product/', views.add_product, name='add_product'),
+    path('remove-product/', views.remove_product, name='remove_product'),
+    path('update-product/', views.update_product_details, name='update_product'),
+    
 ]

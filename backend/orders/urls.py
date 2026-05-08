@@ -15,4 +15,5 @@ urlpatterns = [
     path('return-order/', return_order, name='return_order'),
     path('generate-invoice/', generate_invoice, name='generate_invoice'),
     path('apply-discount/', apply_discount, name='apply_discount'),
+    
 ]

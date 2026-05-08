@@ -8,19 +8,37 @@ from rest_framework import status
 
 
 # Create your views here.
-def send_otp(request):
-    # Logic to send OTP to user
-    pass
-def verify_otp(request):
-    
-    # Logic to verify OTP
-    pass
+@api_view(['POST'])
 def confirm_payment(request):
-    # Logic to confirm payment
-    pass
+    order_id = request.data.get('order_id')
+
+    if not order_id:
+        return Response({"error": "Order ID required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Example logic
+    # order = Order.objects.get(id=order_id)
+    # order.payment_status = "Paid"
+    # order.save()
+
+    return Response({
+        "message": "Payment confirmed",
+        "order_id": order_id
+    })
+    
+    
+@api_view(['GET'])
 def get_payment_status(request):
-    # Logic to get payment status
-    pass
-def make_payment(request):
-    # Logic to handle payment processing
-    pass
+    order_id = request.query_params.get('order_id')
+
+    if not order_id:
+        return Response({"error": "Order ID required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Example:
+    # order = Order.objects.get(id=order_id)
+
+    return Response({
+        "order_id": order_id,
+        "payment_status": "Paid"  # dummy
+    })
+
+

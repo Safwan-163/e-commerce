@@ -5,8 +5,8 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from backend.cart.models import Cart, CartItem
-from backend.users.models import Customer
+from cart.models import Cart, CartItem
+from users.models import Customer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -100,7 +100,7 @@ def order_details(request):
 
     try:
         order = Order.objects.get(id=order_id)
-        items = OrderItem.objects.filter(order=order) # type: ignore
+        items = OrderItem.objects.filter(order=order)  # pyright: ignore[reportUndefinedVariable]
 
         item_list = []
         for item in items:
@@ -230,3 +230,19 @@ def apply_discount(request):
 
     except Order.DoesNotExist:
         return Response({"error": "Order not found"}, status=404)
+    
+    
+@api_view(['GET'])
+def get_order_history(request):
+    user_id = request.query_params.get('user_id')
+
+    if not user_id:
+        return Response({"error": "User ID required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Example:
+    # orders = Order.objects.filter(customer_id=user_id)
+
+    return Response({
+        "user_id": user_id,
+        "orders": []  # return serialized data later
+    })
