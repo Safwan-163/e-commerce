@@ -10,40 +10,53 @@ from users.models import Customer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
 from rest_framework_simplejwt.authentication import JWTAuthentication
-
+from . models import Order, Shipping, OrderItem
+from . serializers import OrderSerializer, ShippingSerializer, OrderItemSerializer
+from  users.models import Employee
 
 # Create your views here.
+def get_customer_from_request(user):
+    try:
+        return Customer.objects.get(id=user.id)
+    except Customer.DoesNotExist:
+        return None
+
+
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def place_order(request):
-    customer = request.user.customer
-    cart_items = Cart.objects.filter(customer=customer)
-
+    try:
+        customer = get_customer_from_request(request.user)
+    except Customer.DoesNotExist:
+            return Response({"error": "Customer not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    cart_items = CartItem.objects.filter(customer=customer)
     if not cart_items.exists():
-        return Response({"message": "Cart is empty"}, status=400)
-
+        return Response({"error": "Cart is empty"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
     order = Order.objects.create(customer=customer, status="Pending")
-
-    total = 0
-
+    
+    total=0
     for item in cart_items:
         product = item.product
         quantity = item.quantity
         price = product.price * quantity
+       
         total += price
-
-        OrderItem.objects.create( # type: ignore
-            order=order,
-            product=product,
-            quantity=quantity,
-            price=price
-        )
+        OrderItem.objects.create(order=order, product=product, quantity=quantity, price=price) # type: ignore
 
     order.total_amount = total
     order.save()
-
+    
     cart_items.delete()
+    
+    return Response({
+        "message": "Order placed successfully",
+        "order_id": order.id
+    })
 
-    return Response({"message": "Order placed successfully", "order_id": order.id})
+            
 
 
 @api_view(['GET'])
@@ -63,52 +76,112 @@ def view_orders(request):
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_order_status(request):
+
     order_id = request.data.get("order_id")
-    status = request.data.get("status")
+    new_status = request.data.get("status")
+
+    # ❗ Validate input
+    if not order_id or not new_status:
+        return Response(
+            {"error": "order_id and status required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # 🔒 Check employee
+    if not Employee.objects.filter(id=request.user.id).exists():
+        return Response(
+            {"error": "Only employees can update order status"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
+    # ✅ Optional: restrict valid statuses
+    VALID_STATUS = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"]
+
+    if new_status not in VALID_STATUS:
+        return Response(
+            {"error": "Invalid status"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     try:
         order = Order.objects.get(id=order_id)
-        order.status = status
+        order.status = new_status
         order.save()
+
         return Response({"message": "Order status updated"})
+
     except Order.DoesNotExist:
-        return Response({"error": "Order not found"}, status=404)
+        return Response(
+            {"error": "Order not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
+    
     
     
 @api_view(['POST'])
 def cancel_order(request):
     order_id = request.data.get("order_id")
+    
+    if not order_id:
+        return Response({"error": "order_id required"}, status=400)
+    
 
     try:
         order = Order.objects.get(id=order_id)
-
-        if order.status == "Shipped":
-            return Response({"message": "Cannot cancel shipped order"}, status=400)
-
-        order.status = "Cancelled"
+        customer=Customer.objects.get(id=request.user.id)
+        
+        if order.customer != customer:
+            return Response({"error": "You can only cancel your own orders"}, status=403)
+         
+        if order.status in ["SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"]:
+            return Response({"message": f"Cannot cancel order in {order.status} status"}, status=400)
+        
+        order.status = "CANCELLED"
         order.save()
-
+   
         return Response({"message": "Order cancelled"})
     except Order.DoesNotExist:
         return Response({"error": "Order not found"}, status=404)
     
     
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def order_details(request):
+
     order_id = request.query_params.get("order_id")
+
+    # ❗ Validate input
+    if not order_id:
+        return Response(
+            {"error": "order_id required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     try:
         order = Order.objects.get(id=order_id)
-        items = OrderItem.objects.filter(order=order)  # pyright: ignore[reportUndefinedVariable]
 
-        item_list = []
-        for item in items:
-            item_list.append({
+        # 🔒 Ownership check
+        customer = Customer.objects.get(id=request.user.id)
+
+        if order.customer_id != customer:
+            return Response(
+                {"error": "You can only view your own orders"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # 📦 Get items
+        items = OrderItem.objects.filter(order=order)
+
+        item_list = [
+            {
                 "product": item.product.name,
                 "quantity": item.quantity,
                 "price": item.price
-            })
+            }
+            for item in items
+        ]
 
         return Response({
             "order_id": order.id,
@@ -116,8 +189,12 @@ def order_details(request):
             "total": order.total_amount,
             "items": item_list
         })
+
     except Order.DoesNotExist:
-        return Response({"error": "Order not found"}, status=404)
+        return Response(
+            {"error": "Order not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
     
     
 @api_view(['GET'])

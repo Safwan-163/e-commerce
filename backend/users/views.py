@@ -1,19 +1,25 @@
 from django.shortcuts import render
 from .models import *
 from .serializers import *
-from rest_framework import viewsets
-from rest_framework.decorators import api_view
-from rest_framework.response import Response    
-from rest_framework import status
-from rest_framework import status
-from django.contrib.auth.hashers import make_password 
-from rest_framework.permissions import IsAuthenticated
+
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+
+from django.contrib.auth.hashers import make_password, check_password
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 # Create your views here.
 @api_view(['POST'])
 def register_customer(request):
-    serializers = CustomerSerializer(data=request.data)
+    data=request.data.copy()
+    if 'password'in data:
+         data['password' ] = make_password(data['password'])
+   
+
+    serializers = CustomerSerializer(data=data)
     if serializers.is_valid():
         serializers.save(role='customer')
         return Response(serializers.data, status=status.HTTP_201_CREATED)
@@ -21,51 +27,59 @@ def register_customer(request):
 
 @api_view(['POST'])
 def register_employee(request):
-    serializers = EmployeeSerializer(data=request.data)
+    data=request.data.copy()
+    if 'password' in data:
+        data['password'] = make_password(data['password'])
+
+    serializers = EmployeeSerializer(data=data)
     if serializers.is_valid():
         serializers.save(role='employee')
         return Response(serializers.data, status=status.HTTP_201_CREATED)
     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
-def verify_user(request):
-    username = request.data.get("username")
-    password = request.data.get("password")
+# @api_view(['POST'])
+# def verify_user(request):
+#     username = request.data.get("username")
+#     password = request.data.get("password")
 
-    if not username or not password:
-        return Response({"message": "Username and password required"}, status=400)
+#     if not username or not password:
+#         return Response({"message": "Username and password required"}, status=400)
 
-    # 🔍 Check Customer
-    try:
-        user = Customer.objects.get(username=username, password=password)
-        return Response({
-            "message": "Login successful",
-            "role": "customer",
-            "user_id": user.id
-        })
-    except Customer.DoesNotExist:
-        pass
+#     # 🔍 Check Customer
+#     try:
+#         user = Customer.objects.get(username=username, password=password)
+#         return Response({
+#             "message": "Login successful",
+#             "role": "customer",
+#             "user_id": user.id
+#         })
+#     except Customer.DoesNotExist:
+#         pass
 
-    # 🔍 Check Employee
-    try:
-        user = Employee.objects.get(username=username, password=password)
-        return Response({
-            "message": "Login successful",
-            "role": "employee",
-            "user_id": user.id
-        })
-    except Employee.DoesNotExist:
-        pass
+#     # 🔍 Check Employee
+#     try:
+#         user = Employee.objects.get(username=username, password=password)
+#         return Response({
+#             "message": "Login successful",
+#             "role": "employee",
+#             "user_id": user.id
+#         })
+#     except Employee.DoesNotExist:
+#         pass
 
-    return Response({"message": "Invalid credentials"}, status=401)
+#     return Response({"message": "Invalid credentials"}, status=401)
 
 
-
+#log_in method .
 @api_view(['POST'])
 def login_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
+    
+    
+    if not username or not password:
+        return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
 
     user = None
     role = None
@@ -75,7 +89,10 @@ def login_user(request):
         user = Customer.objects.get(username=username)
         role = "customer"
     except Customer.DoesNotExist:
-        pass
+        return Response(
+                {"error": "Invalid credentials"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
 
     # 🔍 Find Employee
     if user is None:
@@ -107,6 +124,7 @@ def login_user(request):
             "role": role
         }
     })
+ #log_out method .
 @api_view(['POST'])
 def log_out(request):
     # Logic to handle user logout
@@ -155,21 +173,27 @@ def update_user(request, user_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
-    user = request.user
-
-    role = None
-
-    # Check role
-    if hasattr(user, 'customer'):
-        role = "customer"
-        serializer = CustomerSerializer(user.customer)
-    elif hasattr(user, 'employee'):
-        role = "employee"
-        serializer = EmployeeSerializer(user.employee)
-    else:
-        return Response({"error": "User role not found"}, status=400)
-
-    return Response({
-        "role": role,
-        "data": serializer.data
-    })
+    user_id = request.query_params.get('user_id')
+    role = request.query_params.get('role')
+    
+    if not user_id or not role:
+        return Response(
+            {"error": "user_id and role required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        if role == "customer":
+            user = Customer.objects.get(user_id=user_id)
+        elif role == "employee":
+            user = Employee.objects.get(user_id=user_id)
+        else:
+            return Response({"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({
+            "role": role,
+            "data": serializers.data
+        })
+    except (Customer.DoesNotExist, Employee.DoesNotExist):
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    

@@ -7,75 +7,119 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response    
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
 
 
-def is_employee(user_id):
-    return Employee.objects.filter(Employee_id=user_id).exists()
-
+def is_employee(user):
+    return Employee.objects.filter(id=user.id).exists()
 
 @api_view(['GET'])
 def get_details(request):
     user_id = request.query_params.get('user_id')
+    
+    if not user_id:
+        return Response({"error": "User ID required"}, status=status.HTTP_400_BAD_REQUEST)
+    
 
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return Response({"error": "Invalid User ID"}, status=status.HTTP_400_BAD_REQUEST)
     if not is_employee(user_id):
         return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
-
-    products = Product.objects.all()
-    data = [{"id": p.id, "name": p.name, "price": p.price} for p in products]
-
-    return Response(data)
+    Products = Product.objects.all()
+    serializer = ProductSerializer(Products, many=True)
+    return Response(serializer.data)
 
 
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def add_product(request):
     user_id = request.data.get('user_id')
 
-    if not is_employee(user_id):
+    if not is_employee(request.user):
         return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
-
-    name = request.data.get('name')
-    price = request.data.get('price')
-
-    product = Product.objects.create(name=name, price=price)
-
-    return Response({"message": "Product added", "id": product.id})
+    
+    if not request.data.get('name') or not request.data.get('price'):
+        return Response({"error": "Name and price are required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    serializers=ProductSerializer(data=request.data)
+    if serializers.is_valid():
+        serializers.save()
+        return Response(serializers.data, status=status.HTTP_201_CREATED)
+    return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def remove_product(request):
-    user_id = request.data.get('user_id')
+
     product_id = request.data.get('product_id')
 
-    if not is_employee(user_id):
-        return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
+    # ❗ Validate product_id
+    if not product_id:
+        return Response(
+            {"error": "product_id required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # 🔒 Check employee
+    if not is_employee(request.user):
+        return Response(
+            {"error": "Only employees can delete products"},
+            status=status.HTTP_403_FORBIDDEN
+        )
 
     try:
         product = Product.objects.get(id=product_id)
         product.delete()
+
         return Response({"message": "Product removed"})
+
     except Product.DoesNotExist:
-        return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Product not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_product_details(request):
-    user_id = request.data.get('user_id')
+
     product_id = request.data.get('product_id')
 
-    if not is_employee(user_id):
-        return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
+    # ❗ Validate product_id
+    if not product_id:
+        return Response(
+            {"error": "product_id required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # 🔒 Check employee
+    if not is_employee(request.user):
+        return Response(
+            {"error": "Only employees can update products"},
+            status=status.HTTP_403_FORBIDDEN
+        )
 
     try:
         product = Product.objects.get(id=product_id)
 
+        # ✏️ Update fields
         product.name = request.data.get('name', product.name)
         product.price = request.data.get('price', product.price)
         product.save()
 
         return Response({"message": "Product updated"})
+
     except Product.DoesNotExist:
-        return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Product not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 
 

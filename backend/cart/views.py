@@ -5,35 +5,54 @@ from cart.models import Cart, CartItem
 from .models import *
 from .serializers import *
 from rest_framework import viewsets
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response    
 from rest_framework import status
 
 
 # Create your views here.
+
+def get_customer_from_request(user):
+    try:
+        return Customer.objects.get(id=user.id)
+    except Customer.DoesNotExist:
+        return None
+
+
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def add_to_cart(request):
-    # Logic to add product to cart
-    customer_id = request.data.get('customer_id')
+
+    # 🔒 Get customer
+    customer = get_customer_from_request(request.user)
+    if not customer:
+        return Response({"error": "Only customers allowed"}, status=403)
+
     product_id = request.data.get('product_id')
     quantity = request.data.get('quantity', 1)
-    
-    # Validate customer
-    try:
-        customer = Customer.objects.get(pk=customer_id)
-    except Customer.DoesNotExist:
-        return Response({"error": "Customer not found"}, status=404)
 
-    # Validate product
+    # ❗ Validate input
+    if not product_id:
+        return Response({"error": "product_id required"}, status=400)
+
+    try:
+        quantity = int(quantity)
+        if quantity <= 0:
+            return Response({"error": "Invalid quantity"}, status=400)
+    except:
+        return Response({"error": "Quantity must be number"}, status=400)
+
+    # 🔍 Validate product
     try:
         product = Product.objects.get(pk=product_id)
     except Product.DoesNotExist:
         return Response({"error": "Product not found"}, status=404)
 
-    # Get or create cart
+    # 🛒 Get or create cart
     cart, _ = Cart.objects.get_or_create(customer=customer)
 
-    # Check if item already exists
+    # 📦 Add item
     cart_item, created = CartItem.objects.get_or_create(
         cart=cart,
         product=product
@@ -42,75 +61,107 @@ def add_to_cart(request):
     if created:
         cart_item.quantity = quantity
     else:
-        cart_item.quantity += int(quantity)
+        cart_item.quantity += quantity
 
     cart_item.save()
 
     return Response({
         "message": "Added to cart",
-        "product": product_id,
+        "product": product.id,
         "quantity": cart_item.quantity
     })
     
+    
+    
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def view_cart(request):
-    customer_id = request.query_params.get('customer_id')
 
-    # Validate customer
-    try:
-        customer = Customer.objects.get(pk=customer_id)
-    except Customer.DoesNotExist:
-        return Response({"error": "Customer not found"}, status=404)
+    # 🔒 Get customer
+    customer = get_customer_from_request(request.user)
+    if not customer:
+        return Response({"error": "Only customers allowed"}, status=403)
 
-    # Check if cart exists
+    # 🛒 Get cart
     try:
         cart = Cart.objects.get(customer=customer)
     except Cart.DoesNotExist:
         return Response({
             "message": "Cart is empty",
             "items": [],
-            "total_items": 0
+            "total_items": 0,
+            "total_price": 0
         })
 
-    # Get cart items
+    # 📦 Get items
     cart_items = CartItem.objects.filter(cart=cart)
 
     items_data = []
     total_items = 0
+    total_price = 0
 
     for item in cart_items:
+        item_total = item.product.price * item.quantity
+
         items_data.append({
-            "cart_item_id": item.cart_item_id,
+            "cart_item_id": item.id,
             "product_id": item.product.id,
-            "product_name": item.product.name,   # make sure field name matches your Product model
+            "product_name": item.product.name,
             "price": item.product.price,
             "quantity": item.quantity,
-            "total_price": item.product.price * item.quantity
+            "total_price": item_total
         })
+
         total_items += item.quantity
+        total_price += item_total
 
     return Response({
-        "customer_id": customer_id,
+        "customer_id": customer.id,
         "items": items_data,
-        "total_items": total_items
+        "total_items": total_items,
+        "total_price": total_price
     })
+    
+    
+    
+    
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def remove_from_cart(request):
+
     cart_item_id = request.data.get('cart_item_id')
 
+    # ❗ Validate input
     if not cart_item_id:
-        return Response({"error": "cart_item_id is required"}, status=400)
+        return Response(
+            {"error": "cart_item_id is required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # 🔒 Get customer
+    customer = get_customer_from_request(request.user)
+    if not customer:
+        return Response({"error": "Only customers allowed"}, status=403)
 
     try:
-        cart_item = CartItem.objects.get(pk=cart_item_id)
+        cart_item = CartItem.objects.get(id=cart_item_id)
+
+        # 🔒 Ownership check (VERY IMPORTANT)
+        if cart_item.cart.customer != customer:
+            return Response(
+                {"error": "You can only remove your own cart items"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        cart_item.delete()
+
+        return Response({"message": "Item removed from cart"})
+
     except CartItem.DoesNotExist:
-        return Response({"error": "Item not found"}, status=404)
-
-    cart_item.delete()
-
-    return Response({
-        "message": "Item removed from cart"
-    })
+        return Response(
+            {"error": "Item not found"},
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 @api_view(['GET'])
 def get_details(request):
@@ -136,16 +187,27 @@ def get_details(request):
 
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def clear_cart(request):
-    user_id = request.data.get('user_id')
+
+    # 🔒 Get customer
+    customer = get_customer_from_request(request.user)
+    if not customer:
+        return Response(
+            {"error": "Only customers allowed"},
+            status=status.HTTP_403_FORBIDDEN
+        )
 
     try:
-        cart = Cart.objects.get(customer_id=user_id)
+        cart = Cart.objects.get(customer=customer)
 
-        # Delete all items in cart
+        # 🧹 Clear all items
         CartItem.objects.filter(cart=cart).delete()
 
         return Response({"message": "Cart cleared successfully"})
-    
+
     except Cart.DoesNotExist:
-        return Response({"error": "Cart not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"message": "Cart is already empty"},
+            status=status.HTTP_200_OK
+        )
