@@ -1,27 +1,16 @@
-import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import Products from "./pages/Products";
+const BASE_URL = "http://127.0.0.1:8000"; // Django server
 
+export const apiFetch = async (url, options = {}) => {
+  const access = localStorage.getItem("access");
 
-import { authFetch } from "./auth";
-
-export const updateUser = (id, data) => {
-  return authFetch(`/api/update-user/${id}/`, {
-    method: "PUT",
+  const res = await fetch(BASE_URL + url, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
+      ...(access && { Authorization: `Bearer ${access}` }),
+      ...options.headers,
     },
-    body: JSON.stringify(data),
   });
+
+  return res.json();
 };
-
-function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/products" element={<Products />} />
-    </Routes>
-  );
-}
-
-export default App;

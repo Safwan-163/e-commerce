@@ -1,8 +1,17 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { placeOrder } from "../api/api";
 
 export default function OrderPage() {
+
+// ORDERS
+export const placeOrder = () => API.post("orders/place/");
+
+export const getOrders = () => API.get("orders/");
+
+export const cancelOrder = (id) => API.post(`orders/cancel/${id}/`);
+
   const [cart, setCart] = useState([
     {
       id: 1,

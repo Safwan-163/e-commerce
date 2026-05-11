@@ -1,7 +1,37 @@
+import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
+import API from "../api/axios";   // adjust path if needed
+import { loginUser } from "../api/api";
+
+
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e) => {
+  e.preventDefault(); // prevent page reload
+
+  try {
+    const res = await loginUser({
+      email,
+      password,
+    });
+
+    // save token
+    localStorage.setItem("access_token", res.data.access);
+
+    alert("Login successful");
+
+  } catch (err) {
+    console.log(err);
+    alert("Login failed");
+  }
+};
+
+
   return (
+
     <div className="min-h-screen bg-[#f7f7f8] flex items-center justify-center px-4">
       
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm p-8 space-y-6">
@@ -17,7 +47,7 @@ export default function Login() {
         </div>
 
         {/* Form */}
-        <form className="space-y-4">
+        <form onSubmit={handleLogin} className="space-y-4">
           
           {/* Email */}
           <div className="flex items-center border rounded-xl px-3 py-2 focus-within:ring-1">
@@ -25,6 +55,8 @@ export default function Login() {
             <input
               type="email"
               placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full outline-none bg-transparent text-sm"
             />
           </div>
@@ -33,14 +65,18 @@ export default function Login() {
           <div className="flex items-center border rounded-xl px-3 py-2 focus-within:ring-1">
             <Lock size={18} className="text-gray-400 mr-2" />
             <input
-              type="password"
-              placeholder="Password"
-              className="w-full outline-none bg-transparent text-sm"
+             
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+               className="w-full outline-none bg-transparent text-sm"
+
             />
           </div>
 
           {/* Button */}
-          <button className="w-full bg-black text-white py-3 rounded-xl text-sm hover:opacity-90 transition">
+          <button type="submit"   className="w-full bg-black text-white py-3 rounded-xl text-sm hover:opacity-90 transition">
             Login
           </button>
         </form>

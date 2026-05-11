@@ -1,7 +1,18 @@
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { placeOrder } from "../api/api";
 
 export default function CartPage() {
+
+// CART
+export const getCart = () => API.get("cart/");
+
+export const addToCart = (data) => API.post("cart/add/", data);
+
+export const removeFromCart = (data) => API.post("cart/remove/", data);
+
+export const clearCart = () => API.post("cart/clear/");
+
   const cartItems = [
     {
       id: 1,

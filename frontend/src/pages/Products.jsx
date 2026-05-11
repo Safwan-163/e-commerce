@@ -1,12 +1,24 @@
 import Navbar from "../components/Navbar";
-import Hero from "../components/Hero";
-import ProductGrid from "../components/ProductGrid";
-import Categories from "../components/Categories";
 import Footer from "../components/Footer";
-
-
+import ProductGrid from "../components/ProductGrid";
+import { useEffect, useState } from "react";
+import { getProducts } from "../api/api";
 
 export default function Products() {
+const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await getProducts();
+        setProducts(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchData();
+  }, []);
   return (
     <div className="bg-[#f7f7f8] min-h-screen text-gray-900">
 
