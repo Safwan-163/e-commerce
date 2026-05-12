@@ -42,3 +42,15 @@ export const loginUser = (data) => {
     body: JSON.stringify(data),
   });
 };
+
+
+export const signupUser = (data) => {
+  return apiFetch("/api/signup/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};
+
+export const searchProducts = (query) => {
+  return apiFetch(`/api/products/?search=${query}`);
+};

@@ -7,39 +7,21 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
-      const res = await loginUser({
-        email,
-        password,
-      });
+  try {
+    const res = await loginUser(form);
 
-      // support both direct axios response OR wrapped response
-      const data = res?.data || res;
+    localStorage.setItem("access", res.access);
+    localStorage.setItem("refresh", res.refresh);
 
-      // store tokens (Django SimpleJWT compatible)
-      if (data?.access) {
-        localStorage.setItem("access_token", data.access);
-      }
-
-      if (data?.refresh) {
-        localStorage.setItem("refresh_token", data.refresh);
-      }
-
-      alert("Login successful");
-    } catch (err) {
-      console.log(err);
-
-      // better backend error visibility
-      const msg =
-        err?.response?.data?.detail ||
-        err?.response?.data?.error ||
-        "Login failed";
-
-      alert(msg);
-    }
-  };
+    navigate("/");
+    window.location.reload();
+  } catch (err) {
+    console.log(err);
+    alert("Login failed");
+  }
+};
 
   return (
     <div className="min-h-screen bg-[#f7f7f8] flex items-center justify-center px-4">

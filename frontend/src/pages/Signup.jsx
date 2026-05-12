@@ -1,9 +1,38 @@
+import { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
+//import { signupUser } from "../api/api";
 
 export default function Signup() {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await signupUser(formData);
+      console.log("Signup success:", res.data);
+
+      // optional redirect:
+      // window.location.href = "/login";
+
+    } catch (err) {
+      console.error("Signup error:", err.response?.data || err.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7f8] flex items-center justify-center px-4">
-      
       <div className="w-full max-w-md bg-white rounded-2xl shadow-sm p-8 space-y-6">
 
         {/* Heading */}
@@ -17,14 +46,17 @@ export default function Signup() {
         </div>
 
         {/* Form */}
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSubmit}>
 
           {/* Name */}
           <div className="flex items-center border rounded-xl px-3 py-2">
             <User size={18} className="text-gray-400 mr-2" />
             <input
               type="text"
+              name="name"
               placeholder="Full name"
+              value={formData.name}
+              onChange={handleChange}
               className="w-full outline-none bg-transparent text-sm"
             />
           </div>
@@ -34,7 +66,10 @@ export default function Signup() {
             <Mail size={18} className="text-gray-400 mr-2" />
             <input
               type="email"
+              name="email"
               placeholder="Email"
+              value={formData.email}
+              onChange={handleChange}
               className="w-full outline-none bg-transparent text-sm"
             />
           </div>
@@ -44,7 +79,10 @@ export default function Signup() {
             <Lock size={18} className="text-gray-400 mr-2" />
             <input
               type="password"
+              name="password"
               placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
               className="w-full outline-none bg-transparent text-sm"
             />
           </div>
@@ -69,7 +107,10 @@ export default function Signup() {
 
         {/* Footer */}
         <p className="text-sm text-center text-gray-500">
-          Already have an account? <span className="text-black font-medium cursor-pointer">Login</span>
+          Already have an account?{" "}
+          <span className="text-black font-medium cursor-pointer">
+            Login
+          </span>
         </p>
 
       </div>
