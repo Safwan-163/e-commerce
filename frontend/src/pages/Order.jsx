@@ -5,13 +5,6 @@ import { placeOrder } from "../api/api";
 
 export default function OrderPage() {
 
-// ORDERS
-export const placeOrder = () => API.post("orders/place/");
-
-export const getOrders = () => API.get("orders/");
-
-export const cancelOrder = (id) => API.post(`orders/cancel/${id}/`);
-
   const [cart, setCart] = useState([
     {
       id: 1,
@@ -31,6 +24,7 @@ export const cancelOrder = (id) => API.post(`orders/cancel/${id}/`);
     },
   ]);
 
+  // ✅ Quantity update
   const updateQty = (id, type) => {
     setCart((prev) =>
       prev.map((item) =>
@@ -47,10 +41,24 @@ export const cancelOrder = (id) => API.post(`orders/cancel/${id}/`);
     );
   };
 
+  // ✅ Calculate total
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
+
+  // ✅ Place order (connects to Django)
+  const handleOrder = () => {
+    placeOrder({ items: cart })
+      .then((res) => {
+        console.log(res);
+        alert("Order placed successfully");
+      })
+      .catch((err) => {
+        console.log(err);
+        alert("Order failed");
+      });
+  };
 
   return (
     <div className="bg-[#f7f7f8] min-h-screen">
@@ -58,7 +66,7 @@ export const cancelOrder = (id) => API.post(`orders/cancel/${id}/`);
 
       <div className="max-w-6xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-10">
         
-        {/* LEFT - CART ITEMS */}
+        {/* LEFT */}
         <div className="md:col-span-2 space-y-6">
           <h1 className="text-2xl font-semibold tracking-tight">
             Your Order
@@ -78,7 +86,6 @@ export const cancelOrder = (id) => API.post(`orders/cancel/${id}/`);
                 <h2 className="font-medium">{item.title}</h2>
                 <p className="text-gray-500 text-sm">${item.price}</p>
 
-                {/* Quantity */}
                 <div className="flex items-center gap-3 mt-2">
                   <button
                     onClick={() => updateQty(item.id, "dec")}
@@ -103,7 +110,7 @@ export const cancelOrder = (id) => API.post(`orders/cancel/${id}/`);
           ))}
         </div>
 
-        {/* RIGHT - SUMMARY */}
+        {/* RIGHT */}
         <div className="bg-white rounded-2xl shadow-sm p-6 h-fit sticky top-24">
           <h2 className="text-lg font-semibold mb-4">
             Order Summary
@@ -126,7 +133,10 @@ export const cancelOrder = (id) => API.post(`orders/cancel/${id}/`);
             <span>${subtotal + 5}</span>
           </div>
 
-          <button className="w-full mt-6 bg-black text-white py-3 rounded-full hover:opacity-90 transition">
+          <button
+            onClick={handleOrder}
+            className="w-full mt-6 bg-black text-white py-3 rounded-full hover:opacity-90 transition"
+          >
             Place Order
           </button>
         </div>

@@ -2,16 +2,16 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ProductGrid from "../components/ProductGrid";
 import { useEffect, useState } from "react";
-import { getProducts } from "../api/api";
+
 
 export default function Products() {
-const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await getProducts();
-        setProducts(res.data);
+        setProducts(res); // ✅ fixed
       } catch (err) {
         console.log(err);
       }
@@ -19,16 +19,14 @@ const [products, setProducts] = useState([]);
 
     fetchData();
   }, []);
+
   return (
     <div className="bg-[#f7f7f8] min-h-screen text-gray-900">
 
-      {/* Navbar */}
       <Navbar />
 
-      {/* Page Content */}
       <main className="max-w-7xl mx-auto px-6 py-12">
 
-        {/* Header Section */}
         <div className="mb-10 text-center">
           <p className="text-xs tracking-widest uppercase text-gray-400 mb-2">
             All Products
@@ -43,7 +41,6 @@ const [products, setProducts] = useState([]);
           </p>
         </div>
 
-        {/* Filter Bar (UI only, optional later logic) */}
         <div className="flex flex-wrap gap-3 justify-center mb-10">
           {["All", "Electronics", "Wearables", "Accessories", "New"].map((item) => (
             <button
@@ -55,12 +52,11 @@ const [products, setProducts] = useState([]);
           ))}
         </div>
 
-        {/* Products */}
-        <ProductGrid />
+        {/* ✅ pass backend data */}
+        <ProductGrid products={products} />
 
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );
