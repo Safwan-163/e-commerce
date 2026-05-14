@@ -13,8 +13,8 @@ class Address(models.Model):
         return f"{self.street}, {self.city}, {self.state} {self.zip_code}"  
     
 class Review(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews',null=True, blank=True)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE,null=True, blank=True)
     rating = models.PositiveIntegerField(null=True, blank=True)
     comment = models.TextField(null=True, blank=True)
 
@@ -22,8 +22,8 @@ class Review(models.Model):
         return f"Review for {self.product.name} by {self.customer.name}"
 
 class Wishlist(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    products = models.ManyToManyField(Product)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE,null=True, blank=True)
+    products = models.ManyToManyField(Product, related_name='wishlists', blank=True)
 
     def __str__(self):
         return f"Wishlist for {self.customer.name}"

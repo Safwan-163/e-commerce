@@ -9,6 +9,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import permission_classes
+from products.models import Product
+from orders.models import OrderItem
+from django.db.models import Count, Sum
 
 
 def is_employee(user):
@@ -137,3 +140,29 @@ def list_products(request):
             "stock": product.stock
         })
     return Response(data)
+
+
+
+@api_view(['GET'])
+def product_analytics(request):
+    data = (
+        OrderItem.objects
+        .values('product__id', 'product__name')
+        .annotate(
+            total_quantity=Sum('quantity'),
+            total_customers=Count('order__user', distinct=True)
+        )
+    )
+
+    formatted = [
+        {
+            "id": item["product__id"],
+            "name": item["product__name"],
+            "total_quantity": item["total_quantity"],
+            "total_customers": item["total_customers"],
+        }
+        for item in data
+    ]
+
+    return Response(formatted)
+

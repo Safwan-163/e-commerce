@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 import { loginUser } from "../api/api";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
   e.preventDefault();
-
+const navigate = useNavigate();
   try {
     const res = await loginUser(form);
 
@@ -80,9 +82,11 @@ export default function Login() {
 
         <p className="text-sm text-center text-gray-500">
           Don’t have an account?{" "}
-          <span className="text-black font-medium cursor-pointer">
-            Sign up
-          </span>
+        
+   <span onClick={() => navigate("/signup")}>
+  Sign up
+</span>
+          
         </p>
 
       </div>

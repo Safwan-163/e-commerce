@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -20,6 +21,7 @@ import ReturnsPolicy from "./pages/Returns";
 import AddProduct from "./pages/Add_product";
 import UpdateProduct from "./pages/Update_product";
 import DeleteProduct from "./pages/Delete_product";
+import ProductAnalytics from "./pages/ProductAnalytics";
 
 
 function App() {
@@ -44,6 +46,8 @@ function App() {
         <Route path="/employee/add-product" element={<AddProduct />} />
         <Route path="/employee/update-product" element={<UpdateProduct />} />
         <Route path="/employee/delete-product" element={<DeleteProduct />} />  
+        <Route path="/employee/product-analytics" element={<ProductAnalytics />} />
+      
 
       </Routes>
     </BrowserRouter>

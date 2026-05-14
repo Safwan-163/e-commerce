@@ -88,9 +88,12 @@ export default function Signup() {
           </div>
 
           {/* Button */}
-          <button className="w-full bg-black text-white py-3 rounded-xl text-sm hover:opacity-90 transition">
-            Sign Up
-          </button>
+          <button
+    type="submit"
+    className="w-full bg-black text-white py-3 rounded-xl text-sm hover:opacity-90 transition"
+  >
+    Sign Up
+  </button>
         </form>
 
         {/* Divider */}
@@ -108,7 +111,7 @@ export default function Signup() {
         {/* Footer */}
         <p className="text-sm text-center text-gray-500">
           Already have an account?{" "}
-          <span className="text-black font-medium cursor-pointer">
+          <span onClick={() => navigate("/login")} className="text-black font-medium cursor-pointer">
             Login
           </span>
         </p>
