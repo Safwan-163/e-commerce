@@ -17,6 +17,10 @@ import ShippingPolicy from "./pages/ShipingPolicy";
 import PrivacyPolicy from "./pages/Privecy";
 import OrderPage from "./pages/Order";
 import ReturnsPolicy from "./pages/Returns";
+import AddProduct from "./pages/Add_product";
+import UpdateProduct from "./pages/Update_product";
+import DeleteProduct from "./pages/Delete_product";
+
 
 function App() {
   return (
@@ -37,6 +41,9 @@ function App() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/orders" element={<OrderPage />} />
         <Route path ='/returns' element={<ReturnsPolicy />} />
+        <Route path="/employee/add-product" element={<AddProduct />} />
+        <Route path="/employee/update-product" element={<UpdateProduct />} />
+        <Route path="/employee/delete-product" element={<DeleteProduct />} />  
 
       </Routes>
     </BrowserRouter>

@@ -20,7 +20,6 @@ class Shipping(models.Model):
     order_id = models.ForeignKey(Order, on_delete=models.CASCADE)
     shipping_cost = models.DecimalField(max_digits=10, decimal_places=2)
     shipping_address = models.TextField()
-    shipping_cost = models.DecimalField(max_digits=10, decimal_places=2)
     shipping_date = models.DateTimeField(null=True, blank=True)
     delivery_date = models.DateTimeField(null=True, blank=True)
 

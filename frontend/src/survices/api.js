@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000"; // Django server
+const BASE_URL = "http://127.0.0.1:8000/api"; // Django server
 
 export const apiFetch = async (url, options = {}) => {
   const access = localStorage.getItem("access");
@@ -54,3 +54,21 @@ export const signupUser = (data) => {
 export const searchProducts = (query) => {
   return apiFetch(`/api/products/?search=${query}`);
 };
+
+
+// // PRODUCTS (Employee)
+// export const addProduct = (data) => API.post("products/", data);
+
+// export const updateProduct = (id, data) =>
+//   API.put(`products/${id}/`, data);
+
+// export const deleteProduct = (id) =>
+//   API.delete(`products/${id}/`);
+
+
+
+export const getDashboardStats = () =>
+  apiFetch("dashboard/stats/");
+
+export const getWeeklyOrders = () =>
+  apiFetch("dashboard/orders-week/");

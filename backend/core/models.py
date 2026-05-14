@@ -4,10 +4,10 @@ from users.models import Customer
 
 # Create your models here.
 class Address(models.Model):
-    street = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    zip_code = models.CharField(max_length=20)
+    street = models.CharField(max_length=255,null=True, blank=True)
+    city = models.CharField(max_length=100,null=True, blank=True)
+    state = models.CharField(max_length=100,null=True, blank=True)
+    zip_code = models.CharField(max_length=20,null=True, blank=True)
 
     def __str__(self):
         return f"{self.street}, {self.city}, {self.state} {self.zip_code}"  
@@ -15,8 +15,8 @@ class Address(models.Model):
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    rating = models.PositiveIntegerField()
-    comment = models.TextField()
+    rating = models.PositiveIntegerField(null=True, blank=True)
+    comment = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f"Review for {self.product.name} by {self.customer.name}"
