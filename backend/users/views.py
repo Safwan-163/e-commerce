@@ -16,13 +16,14 @@ from django.contrib.auth import authenticate
 def register_customer(request):
     data = request.data
 
-    user = User.objects.create(
-        username=data['username'],
-        email=data['email'],
-        role='02'
-    )
-    user.set_password(data['password'])
+    user = User.objects.create_user(
+    username=data['username'],
+    email=data['email'],
+    password=data['password']
+)
+    user.role = '02'
     user.save()
+    
 
     Customer.objects.create(
         user=user,
@@ -72,6 +73,9 @@ def login_user(request):
             "role": user.role
         }
     })
+    
+    
+    
  #log_out method .
 @api_view(['POST'])
 def log_out(request):

@@ -7,7 +7,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
 
@@ -75,14 +75,14 @@ export default function Login() {
         {/* Form */}
         <form className="space-y-4" onSubmit={handleLogin}>
 
-          {/* Email */}
+          {/* Username */}
           <div className="flex items-center border rounded-xl px-3 py-2">
             <Mail size={18} className="text-gray-400 mr-2" />
             <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={formData.username}
               onChange={handleChange}
               className="w-full outline-none bg-transparent text-sm"
               required
