@@ -6,4 +6,5 @@ urlpatterns = [
     path('process-refund/', views.process_refund, name='process_refund'),
     path("dashboard/stats/", views.dashboard_stats, name='dashboard_stats'),
     path("dashboard/orders-week/", views.weekly_orders, name='weekly_orders'),
-]
+    
+]   

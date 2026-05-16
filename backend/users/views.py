@@ -9,21 +9,31 @@ from rest_framework import status
 from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.contrib.auth import authenticate
 
 # Create your views here.
 @api_view(['POST'])
 def register_customer(request):
-    data=request.data.copy()
-    if 'password'in data:
-         data['password' ] = make_password(data['password'])
-   
+    data = request.data
 
-    serializers = CustomerSerializer(data=data)
-    if serializers.is_valid():
-        serializers.save(role='customer')
-        return Response(serializers.data, status=status.HTTP_201_CREATED)
-    return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+    user = User.objects.create(
+        username=data['username'],
+        email=data['email'],
+        role='02'
+    )
+    user.set_password(data['password'])
+    user.save()
+
+    Customer.objects.create(
+        user=user,
+        phone=data['phone'],
+        address=data['address']
+    )
+
+    return Response({
+        "message": "Customer created",
+        "user_code": user.user_code
+    })
 
 @api_view(['POST'])
 def register_employee(request):
@@ -38,37 +48,7 @@ def register_employee(request):
     return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# @api_view(['POST'])
-# def verify_user(request):
-#     username = request.data.get("username")
-#     password = request.data.get("password")
 
-#     if not username or not password:
-#         return Response({"message": "Username and password required"}, status=400)
-
-#     # 🔍 Check Customer
-#     try:
-#         user = Customer.objects.get(username=username, password=password)
-#         return Response({
-#             "message": "Login successful",
-#             "role": "customer",
-#             "user_id": user.id
-#         })
-#     except Customer.DoesNotExist:
-#         pass
-
-#     # 🔍 Check Employee
-#     try:
-#         user = Employee.objects.get(username=username, password=password)
-#         return Response({
-#             "message": "Login successful",
-#             "role": "employee",
-#             "user_id": user.id
-#         })
-#     except Employee.DoesNotExist:
-#         pass
-
-#     return Response({"message": "Invalid credentials"}, status=401)
 
 
 #log_in method .
@@ -76,52 +56,20 @@ def register_employee(request):
 def login_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
-    
-    
-    if not username or not password:
-        return Response({"error": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    user = None
-    role = None
+    user = authenticate(username=username, password=password)
 
-    # 🔍 Find Customer
-    try:
-        user = Customer.objects.get(username=username)
-        role = "customer"
-    except Customer.DoesNotExist:
-        return Response(
-                {"error": "Invalid credentials"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-    # 🔍 Find Employee
     if user is None:
-        try:
-            user = Employee.objects.get(username=username)
-            role = "employee"
-        except Employee.DoesNotExist:
-            return Response(
-                {"error": "Invalid credentials"},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+        return Response({"error": "Invalid credentials"}, status=401)
 
-    # 🔐 Check password (IMPORTANT FIX)
-    if not check_password(password, user.password): # type: ignore
-        return Response(
-            {"error": "Invalid credentials"},
-            status=status.HTTP_401_UNAUTHORIZED
-        )
-
-    # 🎟 Generate JWT token
-    refresh = RefreshToken.for_user(user) # type: ignore
+    refresh = RefreshToken.for_user(user)
 
     return Response({
-        "refresh": str(refresh),
         "access": str(refresh.access_token),
         "user": {
-            "id": user.user_id,
-            "username": user.username,
-            "role": role
+            "id": user.id,
+            "user_code": user.user_code,
+            "role": user.role
         }
     })
  #log_out method .

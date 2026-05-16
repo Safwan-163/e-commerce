@@ -4,7 +4,7 @@ import ProductGrid from "../components/ProductGrid";
 import Categories from "../components/Categories";
 import Footer from "../components/Footer";
 import { useEffect, useState } from "react";
-//import { getProducts } from "../services/api";
+import { getProducts } from "../api/api";
 
 export default function Home() {
   const [products, setProducts] = useState([]);

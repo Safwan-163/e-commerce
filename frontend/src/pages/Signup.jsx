@@ -1,13 +1,23 @@
 import { useState } from "react";
 import { Mail, Lock, User } from "lucide-react";
-//import { signupUser } from "../api/api";
+import { useNavigate } from "react-router-dom";
+import { signupUser } from "../api/api";
 
 export default function Signup() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
+    username: "",
     name: "",
     email: "",
     password: "",
+    role: "",
+    phone: "",
+    address: "",
   });
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleChange = (e) => {
     setFormData({
@@ -16,18 +26,35 @@ export default function Signup() {
     });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage("");
 
     try {
-      const res = await signupUser(formData);
-      console.log("Signup success:", res.data);
+      const payload = {
+        username: formData.username || formData.name,
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        role: formData.role,
+        phone: formData.phone,
+        address: formData.address,
+      };
 
-      // optional redirect:
-      // window.location.href = "/login";
+      await signupUser(payload);
+
+      setMessage("Signup successful! Redirecting...");
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
 
     } catch (err) {
-      console.error("Signup error:", err.response?.data || err.message);
+      console.log("ERROR:", err.response?.data);
+      setMessage("Signup failed. Check backend required fields.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,16 +64,34 @@ export default function Signup() {
 
         {/* Heading */}
         <div className="text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Create account
-          </h1>
+          <h1 className="text-2xl font-semibold">Create account</h1>
           <p className="text-sm text-gray-500 mt-1">
             Join Bayraha and start shopping
           </p>
         </div>
 
-        {/* Form */}
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        {/* Message */}
+        {message && (
+          <p className="text-center text-sm text-green-600">
+            {message}
+          </p>
+        )}
+
+        <form className="space-y-4" onSubmit={handleSignup}>
+
+          {/* Username */}
+          <div className="flex items-center border rounded-xl px-3 py-2">
+            <User size={18} className="text-gray-400 mr-2" />
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              value={formData.username}
+              onChange={handleChange}
+              className="w-full outline-none bg-transparent text-sm"
+              required
+            />
+          </div>
 
           {/* Name */}
           <div className="flex items-center border rounded-xl px-3 py-2">
@@ -58,6 +103,7 @@ export default function Signup() {
               value={formData.name}
               onChange={handleChange}
               className="w-full outline-none bg-transparent text-sm"
+              required
             />
           </div>
 
@@ -71,6 +117,7 @@ export default function Signup() {
               value={formData.email}
               onChange={handleChange}
               className="w-full outline-none bg-transparent text-sm"
+              required
             />
           </div>
 
@@ -84,34 +131,70 @@ export default function Signup() {
               value={formData.password}
               onChange={handleChange}
               className="w-full outline-none bg-transparent text-sm"
+              required
+            />
+          </div>
+
+          {/* Role */}
+          <div className="flex items-center border rounded-xl px-3 py-2">
+            <User size={18} className="text-gray-400 mr-2" />
+            <input
+              type="text"
+              name="role"
+              placeholder="Role (customer/admin)"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full outline-none bg-transparent text-sm"
+              required
+            />
+          </div>
+
+          {/* Phone */}
+          <div className="flex items-center border rounded-xl px-3 py-2">
+            <Lock size={18} className="text-gray-400 mr-2" />
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Phone Number"
+              value={formData.phone}
+              onChange={handleChange}
+              pattern="[0-9+ ]+"
+              className="w-full outline-none bg-transparent text-sm"
+              required
+            />
+          </div>
+
+          {/* Address */}
+          <div className="flex items-center border rounded-xl px-3 py-2">
+            <Lock size={18} className="text-gray-400 mr-2" />
+            <input
+              type="text"
+              name="address"
+              placeholder="Address"
+              value={formData.address}
+              onChange={handleChange}
+              className="w-full outline-none bg-transparent text-sm"
+              required
             />
           </div>
 
           {/* Button */}
           <button
-    type="submit"
-    className="w-full bg-black text-white py-3 rounded-xl text-sm hover:opacity-90 transition"
-  >
-    Sign Up
-  </button>
+            type="submit"
+            disabled={loading}
+            className="w-full bg-black text-white py-3 rounded-xl text-sm hover:opacity-90 transition disabled:opacity-50"
+          >
+            {loading ? "Signing up..." : "Sign Up"}
+          </button>
         </form>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-xs text-gray-400">OR</span>
-          <div className="flex-1 h-px bg-gray-200"></div>
-        </div>
-
-        {/* Google */}
-        <button className="w-full border py-3 rounded-xl text-sm hover:bg-gray-50 transition">
-          Continue with Google
-        </button>
 
         {/* Footer */}
         <p className="text-sm text-center text-gray-500">
           Already have an account?{" "}
-          <span onClick={() => navigate("/login")} className="text-black font-medium cursor-pointer">
+          <span
+            onClick={() => navigate("/login")}
+            className="text-black font-medium cursor-pointer"
+          >
             Login
           </span>
         </p>
