@@ -1,5 +1,6 @@
 import API from "./axios";
 
+
 // PRODUCTS
 export const getProducts = () => API.get("products/list-products/");
 export const getProductDetails = (id) => API.get(`products/product-details/${id}/`);
@@ -7,6 +8,9 @@ export const addProduct = (data) => API.post("products/add-product/", data);
 export const updateProduct = (id, data) => API.put(`products/update-product/${id}/`, data);
 export const deleteProduct = (id) => API.delete(`products/remove-product/${id}/`);
 export const getProductAnalytics = () => API.get("products/product-analytics/");
+
+
+
 
 // CART
 export const getCart = () => API.get("cart/view-cart/");
@@ -46,3 +50,10 @@ export const refund= (data) => API.post("core/process-refund/", data);
 export const getDashboardStats = () => API.get("core/dashboard/stats/");
 export const getWeeklyOrders = () => API.get("core/dashboard/orders-week/");
 
+//login
+export const getAuthHeaders = () => {
+  return {
+    Authorization: `Bearer ${localStorage.getItem("access")}`,
+    "Content-Type": "application/json",
+  };
+};

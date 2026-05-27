@@ -1,104 +1,88 @@
 import { useState } from "react";
-import { Mail, Lock } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { loginUser } from "../api/api";
+import { Link } from "react-router-dom";
+import api from "../api/axios";
 
 export default function Login() {
-  const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-  });
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
 
     try {
-      const res = await loginUser(formData);
 
-      console.log("Login success:", res);
+      const res = await api.post("users/login/", {
+        username,
+        password,
+      });
 
-      // 🔥 AUTO LOGIN: save tokens
-      localStorage.setItem("access", res.access);
-      localStorage.setItem("refresh", res.refresh);
+      // Save tokens + user
+      localStorage.setItem("access", res.data.access);
+      localStorage.setItem("refresh", res.data.refresh);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      setMessage("Login successful! Redirecting...");
+      console.log(res.data);
 
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 800);
+      // Redirect
+      window.location = "/dashboard";
 
     } catch (err) {
-      console.error(err.response?.data || err.message);
-      setMessage(
-        err.response?.data?.message || "Login failed. Try again."
-      );
-    } finally {
-      setLoading(false);
+      console.log(err);
+      alert("Invalid username or password");
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f8] flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-sm p-8 space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#f7f7f8] px-4">
 
-        {/* Heading */}
-        <div className="text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Welcome back
+      <div className="w-full max-w-md bg-white shadow-xl rounded-2xl p-8">
+
+        {/* Logo / Title */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-black">
+            Bayraha
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Login to continue shopping
+
+          <p className="text-gray-500 mt-2">
+            Welcome back 👋
           </p>
         </div>
 
-        {/* Message */}
-        {message && (
-          <p className="text-center text-sm text-green-600">
-            {message}
-          </p>
-        )}
-
         {/* Form */}
-        <form className="space-y-4" onSubmit={handleLogin}>
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-5"
+        >
 
           {/* Username */}
-          <div className="flex items-center border rounded-xl px-3 py-2">
-            <Mail size={18} className="text-gray-400 mr-2" />
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Username
+            </label>
+
             <input
               type="text"
-              name="username"
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleChange}
-              className="w-full outline-none bg-transparent text-sm"
+              placeholder="Enter username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
               required
             />
           </div>
 
           {/* Password */}
-          <div className="flex items-center border rounded-xl px-3 py-2">
-            <Lock size={18} className="text-gray-400 mr-2" />
+          <div>
+            <label className="block mb-2 text-sm font-medium text-gray-700">
+              Password
+            </label>
+
             <input
               type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full outline-none bg-transparent text-sm"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-black"
               required
             />
           </div>
@@ -106,37 +90,27 @@ export default function Login() {
           {/* Button */}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-black text-white py-3 rounded-xl text-sm hover:opacity-90 transition disabled:opacity-50"
+            className="w-full bg-black text-white py-3 rounded-xl font-medium hover:opacity-90 transition"
           >
-            {loading ? "Logging in..." : "Login"}
+            Login
           </button>
+
         </form>
 
-        {/* Divider */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-gray-200"></div>
-          <span className="text-xs text-gray-400">OR</span>
-          <div className="flex-1 h-px bg-gray-200"></div>
+        {/* Footer */}
+        <div className="mt-6 text-center text-sm text-gray-500">
+          Don&apos;t have an account?{" "}
+
+          <Link
+            to="/register"
+            className="text-black font-medium hover:underline"
+          >
+            Register
+          </Link>
         </div>
 
-        {/* Google */}
-        <button className="w-full border py-3 rounded-xl text-sm hover:bg-gray-50 transition">
-          Continue with Google
-        </button>
-
-        {/* Footer */}
-        <p className="text-sm text-center text-gray-500">
-          Don’t have an account?{" "}
-          <span
-            onClick={() => navigate("/signup")}
-            className="text-black font-medium cursor-pointer"
-          >
-            Sign up
-          </span>
-        </p>
-
       </div>
+
     </div>
   );
 }

@@ -1,8 +1,8 @@
 from django.contrib.auth.models import AbstractUser
-from django.db import models
+
 from django.conf import settings
 from django.utils import timezone
-
+from django.db import models, IntegrityError, transaction
 
 class User(AbstractUser):
 
@@ -12,54 +12,81 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=2, choices=Role.choices)
 
-    # 🔥 Custom display ID
-    user_code = models.CharField(max_length=20, unique=True, blank=True)
+    user_code = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True
+    )
+
+    @staticmethod
+    def generate_user_code(role):
+
+        now = timezone.now()
+
+        year = str(now.year)[-2:]
+        month = f"{now.month:02d}"
+
+        prefix = f"{year}{month}{role}"
+
+        last_user = User.objects.filter(
+            user_code__startswith=prefix
+        ).order_by('-id').first()
+
+        if last_user:
+            last_serial = int(last_user.user_code[-4:])
+            new_serial = last_serial + 1
+        else:
+            new_serial = 1
+
+        return f"{prefix}{new_serial:04d}"
 
     def save(self, *args, **kwargs):
-        if not self.user_code:
-            now = timezone.now()
 
-            year = now.strftime("%y")
-            month = now.strftime("%m")
-            role = self.role
+        if self.user_code:
+            super().save(*args, **kwargs)
+            return
 
-            count = User.objects.filter(
-                role=self.role,
-                date_joined__year=now.year,
-                date_joined__month=now.month
-            ).count() + 1
+        for _ in range(20):
 
-            sequence = str(count).zfill(3)
+            try:
 
-            self.user_code = f"{year}{month}{role}{sequence}"
+                with transaction.atomic():
 
-        super().save(*args, **kwargs)
+                    self.user_code = self.generate_user_code(
+                        self.role
+                    )
+
+                    super().save(*args, **kwargs)
+
+                    return
+
+            except IntegrityError:
+
+                self.user_code = None
+
+                continue
+
+        raise ValueError(
+            "Could not generate unique user_code"
+        )
 
 
-# =========================
-# CUSTOMER
-# =========================
 class Customer(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="customer_profile"
     )
-
     phone = models.CharField(max_length=20)
     address = models.TextField()
 
 
-# =========================
-# EMPLOYEE
-# =========================
 class Employee(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="employee_profile"
     )
-
     phone = models.CharField(max_length=20)
     address = models.TextField()
-    salary = models.DecimalField(max_digits=10, decimal_places=2)
+    #salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

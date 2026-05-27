@@ -38,38 +38,58 @@ def register_customer(request):
 
 @api_view(['POST'])
 def register_employee(request):
-    data=request.data.copy()
-    if 'password' in data:
-        data['password'] = make_password(data['password'])
-
-    serializers = EmployeeSerializer(data=data)
-    if serializers.is_valid():
-        serializers.save(role='employee')
-        return Response(serializers.data, status=status.HTTP_201_CREATED)
-    return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
+    data=request.data
+    user = User.objects.create_user(
+    username=data['username'],
+    email=data['email'],
+    password=data['password']
+     )
+    user.role="01"
+    user.save()
+    Employee.objects.create(
+        user=user,
+        phone=data['phone'],
+        address=data['address']
+    )
+    return Response({
+        "message": "Customer created",
+        "user_code": user.user_code
+    })
+    
+    
+    
 
 #log_in method .
+
 @api_view(['POST'])
 def login_user(request):
     username = request.data.get('username')
     password = request.data.get('password')
 
-    user = authenticate(username=username, password=password)
+    #print("username:", username)
+    #print("password:", password)
+
+    user = authenticate(
+        username=username,
+        password=password
+    )
+
+    #print("authenticated:", user)
 
     if user is None:
-        return Response({"error": "Invalid credentials"}, status=401)
+        return Response(
+            {"error":"Invalid credentials"},
+            status=401
+        )
 
     refresh = RefreshToken.for_user(user)
 
     return Response({
         "access": str(refresh.access_token),
+        "refresh": str(refresh),
         "user": {
-            "id": user.id,
-            "user_code": user.user_code,
+            "username": user.username,
+            "id": user.user_code,
             "role": user.role
         }
     })
@@ -101,7 +121,7 @@ def update_user(request, user_id):
         try:
             user = Customer.objects.get(user_id=user_id)
         except Customer.DoesNotExist:
-            user = Employee.objects.get(user_id=user_id)
+            user = Employee.objects.get(user_id=user)
 
         # ✏️ Update fields
         user.username = request.data.get('username', user.username)
@@ -136,15 +156,21 @@ def user_profile(request):
     
     try:
         if role == "customer":
-            user = Customer.objects.get(user_id=user_id)
+            obj = Customer.objects.get(user_id=user_id)
         elif role == "employee":
-            user = Employee.objects.get(user_id=user_id)
+            obj = Employee.objects.get(user_id=user_id)
         else:
             return Response({"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
         
         return Response({
             "role": role,
-            "data": serializers.data
+            "data": {
+                "username": obj.user.username,
+                #"email": obj.user.email,
+                "phone": obj.phone,
+                "address": obj.address,
+                "user_id": obj.user.user_code
+            }
         })
     except (Customer.DoesNotExist, Employee.DoesNotExist):
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)

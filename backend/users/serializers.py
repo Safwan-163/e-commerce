@@ -11,7 +11,8 @@ class CustomerSerializer(serializers.ModelSerializer):
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
-        fields = ['phone', 'address', 'salary']
+        fields = ['phone', 'address']
+        read_only_fields = ['salary'] 
 
 
 class UserSerializer(serializers.ModelSerializer):
