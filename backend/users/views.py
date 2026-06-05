@@ -19,9 +19,10 @@ def register_customer(request):
     user = User.objects.create_user(
     username=data['username'],
     email=data['email'],
-    password=data['password']
+    password=data['password'],
+   
 )
-    user.role = '02'
+    user.role = "02"
     user.save()
     
 
@@ -55,6 +56,52 @@ def register_employee(request):
         "message": "Customer created",
         "user_code": user.user_code
     })
+    
+    
+#register method for both customer and employee.
+@api_view(['POST'])
+def register_user(request):
+    data =request.data
+    role_input=data['role'].strip().lower()
+    
+    if role_input == "customer":
+        role = "02"
+    elif role_input == "employee":
+        role = "01"
+    else:
+        return Response(
+        {"error": "Invalid role"},
+        status=400
+    )
+    user = User.objects.create_user(
+    username=data['username'],
+    email=data['email'],
+    password=data['password'],
+    role=role
+)
+    
+    user.save()
+    if user.role == "02":
+        Customer.objects.create(
+            user=user,
+            phone=data['phone'],
+            address=data['address']
+        )
+        return Response({
+        "message": "Customer created",
+        "user_code": user.user_code
+    })
+    elif user.role == "01":
+        Employee.objects.create(
+            user=user,
+            phone=data['phone'],
+            address=data['address']
+        )
+        return Response({
+            "message": "Employee created",
+            "user_code": user.user_code
+        })  
+        
     
     
     

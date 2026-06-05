@@ -1,5 +1,4 @@
 from django.contrib.auth.models import AbstractUser
-
 from django.conf import settings
 from django.utils import timezone
 from django.db import models, IntegrityError, transaction
@@ -17,7 +16,7 @@ class User(AbstractUser):
         unique=True,
         blank=True
     )
-
+    
     @staticmethod
     def generate_user_code(role):
 

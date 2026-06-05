@@ -4,13 +4,15 @@ import { useEffect, useState } from "react";
 export default function Navbar() {
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const savedUser = JSON.parse(
-      localStorage.getItem("user")
-    );
+// useEffect(() => {
 
-    setUser(savedUser);
-  }, []);
+//   const savedUser = localStorage.getItem("user");
+
+//   if (savedUser) {
+//     setUser(JSON.parse(savedUser));
+//   }
+
+// }, []);
 
   const logout = () => {
     localStorage.removeItem("user");
