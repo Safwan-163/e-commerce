@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from users.models import Customer, Employee
+from users.models import Customer, Employee, User
 from cart.models import Cart, CartItem
 from .models import *
 from .serializers import *
@@ -7,17 +7,25 @@ from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response    
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,BasePermission
 from rest_framework.decorators import permission_classes
 from products.models import Product
 from orders.models import OrderItem
 from django.db.models import Count, Sum
 
 
-def is_employee(user):
-    return Employee.objects.filter(id=user.id).exists()
+class IsEmployee(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated and
+            request.user.role == User.Role.EMPLOYEE
+        )
+
+# def is_employee(user):
+#     return Employee.objects.filter(id=user.user_code).exists()
 
 @api_view(['GET'])
+@permission_classes([IsEmployee])
 def get_details(request):
     user_id = request.query_params.get('user_id')
     
@@ -38,25 +46,21 @@ def get_details(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsEmployee])
 def add_product(request):
-    user_id = request.data.get('user_id')
+    serializer = ProductSerializer(data=request.data)
 
-    if not is_employee(request.user):
-        return Response({"error": "Access denied"}, status=status.HTTP_403_FORBIDDEN)
-    
-    if not request.data.get('name') or not request.data.get('price'):
-        return Response({"error": "Name and price are required"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    serializers=ProductSerializer(data=request.data)
-    if serializers.is_valid():
-        serializers.save()
-        return Response(serializers.data, status=status.HTTP_201_CREATED)
-    return Response(serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+
+    return Response(serializer.errors, status=400)
+
+
 
 
 @api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsEmployee])
 def remove_product(request):
 
     product_id = request.data.get('product_id')
@@ -89,7 +93,7 @@ def remove_product(request):
 
 
 @api_view(['PUT'])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsEmployee])
 def update_product_details(request):
 
     product_id = request.data.get('product_id')

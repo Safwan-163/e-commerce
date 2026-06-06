@@ -12,95 +12,138 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 
 # Create your views here.
-@api_view(['POST'])
-def register_customer(request):
-    data = request.data
+# @api_view(['POST'])
+# def register_customer(request):
+#     data = request.data
 
-    user = User.objects.create_user(
-    username=data['username'],
-    email=data['email'],
-    password=data['password'],
+#     user = User.objects.create_user(
+#     username=data['username'],
+#     email=data['email'],
+#     password=data['password'],
    
-)
-    user.role = "02"
-    user.save()
+# )
+#     user.role = "02"
+#     user.save()
     
 
-    Customer.objects.create(
-        user=user,
-        phone=data['phone'],
-        address=data['address']
-    )
+#     Customer.objects.create(
+#         user=user,
+#         phone=data['phone'],
+#         address=data['address']
+#     )
 
-    return Response({
-        "message": "Customer created",
-        "user_code": user.user_code
-    })
+#     return Response({
+#         "message": "Customer created",
+#         "user_code": user.user_code
+#     })
 
-@api_view(['POST'])
-def register_employee(request):
-    data=request.data
-    user = User.objects.create_user(
-    username=data['username'],
-    email=data['email'],
-    password=data['password']
-     )
-    user.role="01"
-    user.save()
-    Employee.objects.create(
-        user=user,
-        phone=data['phone'],
-        address=data['address']
-    )
-    return Response({
-        "message": "Customer created",
-        "user_code": user.user_code
-    })
+# @api_view(['POST'])
+# def register_employee(request):
+  
+        
+#     data=request.data
+#     user = User.objects.create_user(
+#     username=data['username'],
+#     email=data['email'],
+#     password=data['password']
+#      )
+#     user.role="01"
+#     user.save()
+#     Employee.objects.create(
+#         user=user,
+#         phone=data['phone'],
+#         address=data['address']
+#     )
+#     return Response({
+#         "message": "Employee created",
+#         "user_code": user.user_code
+#     })
+    
     
     
 #register method for both customer and employee.
 @api_view(['POST'])
 def register_user(request):
-    data =request.data
-    role_input=data['role'].strip().lower()
-    
-    if role_input == "customer":
-        role = "02"
-    elif role_input == "employee":
-        role = "01"
-    else:
+
+    try:
+
+        data = request.data
+
+        role_input = data['role'].strip().lower()
+
+        if role_input == "customer":
+            role = "02"
+
+        elif role_input == "employee":
+            role = "01"
+
+        else:
+            return Response(
+                {"error": "Invalid role"},
+                status=400
+            )
+
+        user = User.objects.create_user(
+            username=data['username'],
+            email=data['email'],
+            password=data['password'],
+            role=role
+        )
+
+        user.save()
+
+        if user.role == "02":
+
+            Customer.objects.create(
+                user=user,
+                phone=data['phone'],
+                address=data['address']
+            )
+
+            return Response({
+                "message": "Customer created",
+                "user_code": user.user_code
+            })
+
+        elif user.role == "01":
+
+            Employee.objects.create(
+                user=user,
+                phone=data['phone'],
+                address=data['address']
+            )
+
+            return Response({
+                "message": "Employee created",
+                "user_code": user.user_code
+            })
+
+    except KeyError as e:
+
         return Response(
-        {"error": "Invalid role"},
-        status=400
-    )
-    user = User.objects.create_user(
-    username=data['username'],
-    email=data['email'],
-    password=data['password'],
-    role=role
-)
-    
-    user.save()
-    if user.role == "02":
-        Customer.objects.create(
-            user=user,
-            phone=data['phone'],
-            address=data['address']
+            {
+                "error": f"Missing field: {e}"
+            },
+            status=400
         )
-        return Response({
-        "message": "Customer created",
-        "user_code": user.user_code
-    })
-    elif user.role == "01":
-        Employee.objects.create(
-            user=user,
-            phone=data['phone'],
-            address=data['address']
+
+    except IntegrityError:
+
+        return Response(
+            {
+                "error": "Username, email, or user_code already exists."
+            },
+            status=400
         )
-        return Response({
-            "message": "Employee created",
-            "user_code": user.user_code
-        })  
+
+    except Exception as e:
+
+        return Response(
+            {
+                "error": str(e)
+            },
+            status=500
+        )
         
     
     
