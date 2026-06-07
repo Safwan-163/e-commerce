@@ -170,3 +170,7 @@ def product_analytics(request):
 
     return Response(formatted)
 
+
+
+
+        

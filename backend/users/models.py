@@ -36,13 +36,11 @@ class User(AbstractUser):
         return f"{prefix}{new_serial:04d}"
 
     def save(self, *args, **kwargs):
-
         if self.user_code:
             super().save(*args, **kwargs)
             return
-
         for _ in range(20):
-
+            
             try:
 
                 with transaction.atomic():
