@@ -8,15 +8,14 @@ class Product(models.Model):
     class Type(models.TextChoices):
         Electronics = "01", "Electronics"
         Clothing = "02", "Clothing"
-        Home = "03", "Home"
+        Home = "03", "Home_appliances"
         Books = "04", "Books"
         Toys = "05", "Toys"
-        Grocery = "06", "Grocery"
-        Beauty = "07", "Beauty"
+       
+        Beauty = "06", "Beauty"
         Sports = "08", "Sports"
-        Fruites = "09", "Fruits"
-        Vegetables = "10", "Vegetables"
-        Stationary = "11", "Stationary"
+        
+        Stationary = "09", "Stationary"
         
         
         
@@ -30,6 +29,7 @@ class Product(models.Model):
         now =timezone.now()
         year = str(now.year)[-2:]
         month = f"{now.month:02d}"
+       
         prefix = f"{year}{month}{product_type}"
         last_product =Product.objects.filter(
             product_code__startswith=prefix
@@ -52,6 +52,7 @@ class Product(models.Model):
         
     def save(self, *args, **kwargs):
         
+        
         if self.product_code:
            super().save(*args, **kwargs)
            return
@@ -60,17 +61,16 @@ class Product(models.Model):
             
          try:
              
-                
+           with transaction.atomic():
+               
 
-            with transaction.atomic():
-
-                self.product_code = self.generate_product_code(
+                 self.product_code = self.generate_product_code(
                         self.product_type
                     )
 
-                super().save(*args, **kwargs)
+                 super().save(*args, **kwargs)
 
-                return
+                 return
 
          except IntegrityError:
 
@@ -78,12 +78,30 @@ class Product(models.Model):
 
                 continue
 
-    raise ValueError(
+                raise ValueError(
             "Could not generate unique product_code"
         )
     
-        
+    def __str__(self):
+        return f"{self.product_name} ({self.product_code})"
+      
+    
+    
     
 
+class ProductDetail(models.Model):
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name='details'
+    )
+
+    key = models.CharField(max_length=100)
+    value = models.CharField(max_length=255)
+
     def __str__(self):
-        return self.product_name
+        return f"{self.key}: {self.value}"
+    
+    
+    
+        
