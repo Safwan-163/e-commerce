@@ -1,3 +1,5 @@
+import json
+
 from django.shortcuts import render
 from users.models import Customer, Employee, User
 from cart.models import Cart, CartItem
@@ -18,10 +20,16 @@ from django.db import transaction, IntegrityError
 
 class IsEmployee(BasePermission):
     def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and
-            request.user.role == User.Role.EMPLOYEE
-        )
+
+        print("Authenticated:", request.user.is_authenticated)
+        print("User:", request.user)
+
+        if not request.user.is_authenticated:
+            return False
+
+        print("Role:", request.user.role)
+
+        return request.user.role == User.Role.EMPLOYEE
 # class IsCustomer(BasePermission):
 #     def has_permission(self, request, view):
 #         return super().has_permission(request, view)
@@ -30,17 +38,17 @@ class IsEmployee(BasePermission):
 #     return Employee.objects.filter(id=user.user_code).exists()
 
 @api_view(['GET'])
-def view_product(request):
+def view_product(request,product_code):
     try:
-        product_id = request.query_params.get("product_id")
+        #product_code = request.query_params.get("product_code")
 
-        if not product_id:
+        if not product_code:
             return Response(
-                {"error": "product_id required"},
+                {"error": "product_code required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        product = Product.objects.get(id=product_id)
+        product = Product.objects.get(product_code=product_code)
 
         serializer = ProductSerializer(product)
 
@@ -129,7 +137,7 @@ def add_product(request):
             
         )
         product.save()
-        details = data.get("details", [])
+        details = json.loads(data.get("details", "[]"))
 
         for detail in details:
             ProductDetail.objects.create(
@@ -156,15 +164,15 @@ from django.shortcuts import get_object_or_404
 @permission_classes([IsEmployee])
 def remove_product(request):
 
-    product_id = request.data.get('product_id')
+    product_code = request.data.get('product_code')
 
-    if not product_id:
+    if not product_code:
         return Response(
-            {"error": "product_id is required"},
+            {"error": "product_code is required"},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    product = get_object_or_404(Product, id=product_id)
+    product = get_object_or_404(Product, product_code=product_code)
 
     product.delete()
 
@@ -178,16 +186,16 @@ def remove_product(request):
 def update_product(request):
     try:
         data = request.data
-        product_id = data.get("product_id")
+        product_code = data.get("product_code")
 
-        if not product_id:
+        if not product_code:
             return Response(
-                {"error": "product_id required"},
+                {"error": "product_code required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         try:
-            product = Product.objects.get(id=product_id)
+            product = Product.objects.get(product_code=product_code)
         except Product.DoesNotExist:
             return Response(
                 {"error": "Product not found"},
@@ -266,8 +274,8 @@ def update_product(request):
 #     data = []
 #     for product in products:
 #         data.append({
-#             "product_id": product.id,
-#             "name": product.name,
+#             "product_code": product.product_code,
+#             "name": product.product_name,
 #             "price": product.price,
 #             "description": product.description,
 #             "stock": product.stock
@@ -280,7 +288,7 @@ def update_product(request):
 def product_analytics(request):
     data = (
         OrderItem.objects
-        .values('product__id', 'product__name')
+        .values('product__product_code', 'product__product_name')
         .annotate(
             total_quantity=Sum('quantity'),
             total_customers=Count('order__user', distinct=True)
@@ -289,8 +297,8 @@ def product_analytics(request):
 
     formatted = [
         {
-            "id": item["product__id"],
-            "name": item["product__name"],
+            "product_code": item["product__product_code"],
+            "product_name": item["product__product_name"],
             "total_quantity": item["total_quantity"],
             "total_customers": item["total_customers"],
         }

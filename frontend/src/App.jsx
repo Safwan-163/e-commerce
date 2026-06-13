@@ -22,6 +22,8 @@ import AddProduct from "./pages/Add_product";
 import UpdateProduct from "./pages/Update_product";
 import DeleteProduct from "./pages/Delete_product";
 import ProductAnalytics from "./pages/ProductAnalytics";
+import ProductDetails from "./pages/Product_details";
+import { getProduct } from "./api/api";
 
 
 function App() {
@@ -47,7 +49,7 @@ function App() {
         <Route path="/employee/update-product" element={<UpdateProduct />} />
         <Route path="/employee/delete-product" element={<DeleteProduct />} />  
         <Route path="/employee/product-analytics" element={<ProductAnalytics />} />
-      
+        <Route path="/products/product-details/:product_code" element={<ProductDetails />} />
 
       </Routes>
     </BrowserRouter>

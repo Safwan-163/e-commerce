@@ -36,7 +36,7 @@ export default function Footer() {
         {/* Contact Info */}
         <div>
           <h3 className="font-semibold mb-3">Contact</h3>
-          <p className="text-gray-600">📞 01644010184</p>
+          <p className="text-gray-600">📞 8801998561097</p>
           <p className="text-gray-600">✉️ bayrahainternational@gmail.com</p>
           <p className="text-gray-600">
             📍 78/A Green Road, Tejgaon, Dhaka, Bangladesh

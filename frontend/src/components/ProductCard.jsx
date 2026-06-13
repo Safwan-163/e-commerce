@@ -1,25 +1,123 @@
+import { Link } from "react-router-dom";
+
 export default function ProductCard({ product }) {
   return (
-    <div className="bg-white rounded-xl shadow p-4">
-      
-      {/* fallback image */}
-      <img
-        src={product.image || "https://via.placeholder.com/300"}
-        alt={product.name}
-        className="w-full h-48 object-cover rounded"
-      />
+    <div
+      className="
+      bg-white
+      rounded-2xl
+      overflow-hidden
+      border
+      hover:shadow-xl
+      transition-all
+      duration-300
+      h-full
+      flex
+      flex-col
+      "
+    >
+      {/* Product Image */}
 
-      <h3 className="font-bold mt-3">{product.name}</h3>
+      <div className="aspect-square bg-gray-100 overflow-hidden">
+        <img
+  src={`http://127.0.0.1:8000${product.product_image}`}
+  alt={product.product_name}
+/>
+      </div>
 
-      <p className="text-gray-500 text-sm">
-        {product.category || "General"}
-      </p>
+      {/* Content */}
 
-      <div className="flex justify-between mt-3">
-        <span className="font-bold">{product.price} BDT</span>
-        <button className="bg-yellow-500 px-3 py-1 rounded text-white">
-          Add
-        </button>
+      <div className="p-4 flex flex-col flex-grow">
+
+        {/* Category */}
+
+        <span
+          className="
+          text-xs
+          uppercase
+          tracking-wide
+          text-gray-500
+          mb-2
+          "
+        >
+          {product.product_type}
+          {product.product_code && ` - ${product.product_code}`}
+        </span>
+
+        {/* Name */}
+
+        <h3
+          className="
+          text-lg
+          font-semibold
+          line-clamp-2
+          min-h-[56px]
+          "
+        >
+          {product.product_name}
+        </h3>
+
+        {/* Description */}
+
+        <p
+          className="
+          text-sm
+          text-gray-500
+          mt-2
+          line-clamp-2
+          "
+        >
+          {product.product_description}
+        </p>
+
+        {/* Price */}
+
+        <div className="mt-4">
+          <span
+            className="
+            text-2xl
+            font-bold
+            "
+          >
+            ৳{product.product_cost}
+          </span>
+        </div>
+
+        {/* Buttons */}
+
+        <div className="mt-auto pt-5 flex gap-2">
+ 
+          <Link
+            to={`product-details/${product.product_code || product.id}`} // Use product_code if available, otherwise fallback to id
+            className="
+            flex-1
+            text-center
+            border
+            rounded-lg
+            py-2
+            hover:bg-gray-100
+            transition
+            "
+          >
+            View
+          </Link>
+
+          <button
+            className="
+            flex-1
+            bg-black
+            text-white
+            rounded-lg
+            py-2
+            hover:opacity-90
+            transition
+            "
+          >
+            Add Cart
+          </button>
+
+        </div>
+
       </div>
     </div>
   );

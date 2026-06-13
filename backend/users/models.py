@@ -15,6 +15,7 @@ class User(AbstractUser):
     
     @staticmethod
     def generate_user_code(role):
+        print("Generating user code for role:", role)
 
         now = timezone.now()
 
@@ -22,6 +23,7 @@ class User(AbstractUser):
         month = f"{now.month:02d}"
 
         prefix = f"{year}{month}{role}"
+        print("Generated prefix:", prefix)
 
         last_user = User.objects.filter(
             user_code__startswith=prefix

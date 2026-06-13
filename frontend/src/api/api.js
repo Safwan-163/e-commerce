@@ -2,11 +2,11 @@ import API from "./axios";
 
 
 // PRODUCTS
-export const getProducts = () => API.get("products/list-products/");
-export const getProductDetails = (id) => API.get(`products/product-details/${id}/`);
+export const getProducts = () => API.get("products/all-products/");
+export const getProductDetails = (productCode) => API.get(`products/product-details/${productCode}/`);
 export const addProduct = (data) => API.post("products/add-product/", data);
-export const updateProduct = (id, data) => API.put(`products/update-product/${id}/`, data);
-export const deleteProduct = (id) => API.delete(`products/remove-product/${id}/`);
+export const updateProduct = (productCode, data) => API.put(`products/update-product/${productCode}/`, data);
+export const deleteProduct = (productCode) => API.delete(`products/remove-product/${productCode}/`);
 export const getProductAnalytics = () => API.get("products/product-analytics/");
 
 
@@ -56,4 +56,12 @@ export const getAuthHeaders = () => {
     Authorization: `Bearer ${localStorage.getItem("access")}`,
     "Content-Type": "application/json",
   };
+};
+
+export const getProduct = async (productCode) => {
+  const response = await API.get(
+    `products/product-details/${productCode}/`
+  );
+
+  return response.data;
 };

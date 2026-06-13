@@ -1,7 +1,7 @@
 from django.db import IntegrityError, models
 from django.db import transaction
 from django.utils import timezone
-# Create your models here.
+
 
 class Product(models.Model):
     

@@ -10,6 +10,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from rest_framework.permissions import AllowAny
 
 # Create your views here.
 # @api_view(['POST'])
@@ -63,6 +64,7 @@ from django.contrib.auth import authenticate
     
 #register method for both customer and employee.
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def register_user(request):
 
     try:

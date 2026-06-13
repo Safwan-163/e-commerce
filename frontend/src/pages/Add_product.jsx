@@ -46,6 +46,7 @@ export default function AddProduct() {
     e.preventDefault();
 
     try {
+      console.log("Access Token:", localStorage.getItem("access"));
       const formData = new FormData();
 
       formData.append("type", product.type);

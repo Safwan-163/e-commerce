@@ -5,6 +5,7 @@ import api from "../api/axios";
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,6 +45,7 @@ if (role === "01") {
 
     } catch (err) {
       console.error(err);
+      
 
       if (err.response?.status === 401) {
         alert("Invalid username or password");
