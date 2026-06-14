@@ -162,9 +162,9 @@ from django.shortcuts import get_object_or_404
 
 @api_view(['DELETE'])
 @permission_classes([IsEmployee])
-def remove_product(request):
+def remove_product(request,product_code):
 
-    product_code = request.data.get('product_code')
+    
 
     if not product_code:
         return Response(
@@ -183,10 +183,10 @@ def remove_product(request):
     
 @api_view(['PUT'])
 @permission_classes([IsEmployee])
-def update_product(request):
+def update_product(request, product_code):
     try:
         data = request.data
-        product_code = data.get("product_code")
+        # product_code = data.get("product_code")
 
         if not product_code:
             return Response(

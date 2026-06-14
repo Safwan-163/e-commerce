@@ -6,9 +6,15 @@ export const getProducts = () => API.get("products/all-products/");
 export const getProductDetails = (productCode) => API.get(`products/product-details/${productCode}/`);
 export const addProduct = (data) => API.post("products/add-product/", data);
 export const updateProduct = (productCode, data) => API.put(`products/update-product/${productCode}/`, data);
-export const deleteProduct = (productCode) => API.delete(`products/remove-product/${productCode}/`);
+// export const deleteProduct = (productCode) => API.delete(`products/remove-product/${productCode}/`);
 export const getProductAnalytics = () => API.get("products/product-analytics/");
+export const deleteProduct = async (productCode) => {
+  const response = await API.delete(
+    `products/remove-product/${productCode}/`
+  );
 
+  return response.data;
+};
 
 
 
