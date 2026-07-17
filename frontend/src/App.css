@@ -1,0 +1,6 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.input {
+  @apply w-full px-4 py-2 rounded-xl bg-gray-100 focus:bg-white border border-transparent focus:border-gray-300 outline-none transition;
+}
