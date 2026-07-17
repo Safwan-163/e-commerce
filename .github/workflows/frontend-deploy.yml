@@ -12,7 +12,7 @@ jobs:
 
     steps:
 
-    - name: Checkout
+    - name: Checkout code
       uses: actions/checkout@v4
 
 
@@ -22,14 +22,14 @@ jobs:
         node-version: 22
 
 
-    - name: Build React
+    - name: Install and Build React
       working-directory: frontend
       run: |
         npm install
         npm run build
 
 
-    - name: Upload frontend
+    - name: Deploy dist to Server
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ secrets.SERVER_HOST }}
@@ -37,4 +37,3 @@ jobs:
         key: ${{ secrets.SERVER_KEY }}
         source: "frontend/dist/*"
         target: "/home/bayrahac/public_html"
-        
