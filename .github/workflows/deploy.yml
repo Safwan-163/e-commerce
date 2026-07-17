@@ -1,0 +1,39 @@
+name: Deploy Bayraha Frontend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+
+    - name: Build React
+      working-directory: frontend
+      run: |
+        npm install
+        npm run build
+
+
+    - name: Upload frontend
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_KEY }}
+        source: "frontend/dist/*"
+        target: "/home/bayrahac/public_html"
