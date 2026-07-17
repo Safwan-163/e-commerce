@@ -166,6 +166,6 @@ SIMPLE_JWT = {
 
 from decouple import config
 
-OPENAI_API_KEY = config("OPENAI_API_KEY")
+#OPENAI_API_KEY = config("OPENAI_API_KEY")
 GOOGLE_API_KEY = config("GOOGLE_API_KEY")
 # GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")

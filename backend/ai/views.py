@@ -42,43 +42,43 @@ def chat_google(request):
             status=500
         )
 
-@api_view(["POST"])
-def chat(request):
-    message = request.data.get("message")
+# @api_view(["POST"])
+# def chat(request):
+#     message = request.data.get("message")
 
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4.1-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are a shopping assistant."
-                },
-                {
-                    "role": "user",
-                    "content": message
-                }
-            ]
-        )
+#     try:
+#         response = client.chat.completions.create(
+#             model="gpt-4.1-mini",
+#             messages=[
+#                 {
+#                     "role": "system",
+#                     "content": "You are a shopping assistant."
+#                 },
+#                 {
+#                     "role": "user",
+#                     "content": message
+#                 }
+#             ]
+#         )
 
-        return Response({
-            "reply": response.choices[0].message.content
-        })
+#         return Response({
+#             "reply": response.choices[0].message.content
+#         })
 
-    except AuthenticationError:
-        return Response(
-            {"reply": "OpenAI API key is invalid."},
-            status=401
-        )
+#     except AuthenticationError:
+#         return Response(
+#             {"reply": "OpenAI API key is invalid."},
+#             status=401
+#         )
 
-    except RateLimitError:
-        return Response(
-            {"reply": "OpenAI API quota has been exceeded. Please check your API billing."},
-            status=429
-        )
+#     except RateLimitError:
+#         return Response(
+#             {"reply": "OpenAI API quota has been exceeded. Please check your API billing."},
+#             status=429
+#         )
 
-    except Exception as e:
-        return Response(
-            {"reply": str(e)},
-            status=500
-        )
+#     except Exception as e:
+#         return Response(
+#             {"reply": str(e)},
+#             status=500
+#         )
