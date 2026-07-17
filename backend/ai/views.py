@@ -1,6 +1,6 @@
 
-from openai import OpenAI
-from openai import AuthenticationError, RateLimitError
+# from openai import OpenAI
+# from openai import AuthenticationError, RateLimitError
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view
 from django.conf import settings
 from google import genai
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+# client = OpenAI(api_key=settings.OPENAI_API_KEY)
 client_google = genai.Client(api_key=settings.GOOGLE_API_KEY)
 
 @api_view(["POST"])
