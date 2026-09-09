@@ -5,12 +5,19 @@ export default function Hero() {
 
         <div
           className="relative rounded-3xl overflow-hidden h-[500px] flex items-center"
+          // style={{
+          //   backgroundImage:
+          //     "url('https://cdn.mos.cms.futurecdn.net/xuCNGttvFBvY9nDhwMuWo6.jpg')",
+          //   backgroundSize: "cover",
+          //   backgroundPosition: "center",
+          // }}
           style={{
-            backgroundImage:
-              "url('https://cdn.mos.cms.futurecdn.net/xuCNGttvFBvY9nDhwMuWo6.jpg')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
+                backgroundImage:
+              
+              "url('https://backend.bayraha.com/media/bayraha_cover_photo.png')",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
         >
           {/* Soft overlay for readability */}
           <div className="absolute inset-0 bg-white/40 backdrop-blur-sm"></div>
